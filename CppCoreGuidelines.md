@@ -42,7 +42,7 @@ You can [Read an explanation of the scope and structure of this Guide](#S-abstra
 * [SF: Source files](#S-source)
 * [CPL: C-style programming](#S-cpl)
 * [PRO: Profiles](#S-profile)
-* [GSL: Guideline support library](#S-support)
+* [GSL: Guideline support library](#S-gsl)
 
 Supporting sections:
 
@@ -174,7 +174,7 @@ Take the time to understand the implications of a guideline rule on your program
 
 These guidelines are designed according to the "subset of a superset" principle ([Stroustrup,2005](#BS2005)).
 They do not simply define a subset of C++ to be used (for reliability, safety, performance, or whatever).
-Instead, they strongly recommend the use of a few simple "extensions" ([library components](#S-support))
+Instead, they strongly recommend the use of a few simple "extensions" ([library components](#S-gsl))
 that make the use of the most error-prone features of C++ redundant, so that they can be banned (in our set of rules).
 
 The rules emphasize static type safety and resource safety.
@@ -317,7 +317,7 @@ Recommended information sources can be found in [the references](#S-references).
 * [SF: Source files](#S-source)
 * [CPL: C-style programming](#S-cpl)
 * [PRO: Profiles](#S-profile)
-* [GSL: Guideline support library](#S-support)
+* [GSL: Guideline support library](#S-gsl)
 
 Supporting sections:
 
@@ -408,7 +408,7 @@ A well-designed library expresses intent (what is to be done, rather than just h
 
 A C++ programmer should know the basics of the STL, and use it where appropriate.
 Any programmer should know the basics of the foundation libraries of the project being worked on, and use it appropriate.
-Any programmer using these guidelines should know the [Guidelines Support Library](#S-GSL), and use it appropriate.
+Any programmer using these guidelines should know the [Guidelines Support Library](#S-gsl), and use it appropriate.
 
 **Example**:
 
@@ -479,7 +479,7 @@ The last variant makes it clear that we are not interested in the order in which
 
 A programmer should be familiar with
 
-* [The guideline support library](#S-support)
+* [The guideline support library](#S-gsl)
 * [The ISO C++ standard library](#S-stdlib)
 * Whatever foundation libraries are used for the current project(s)
 
@@ -629,14 +629,14 @@ This design carries the number of elements along as an integral part of an objec
 		return v;
 	}
 
-	unique_ptr<int[]> f6(int n)	// bad: looses n
+	unique_ptr<int[]> f6(int n)	// bad: loses n
 	{
 		auto p = make_unique<int[]>(n);
 		// ... initialize *p ...
 		return p;
 	}
 
-	owner<int*> f7(int n)	// bad: looses n and we might forget to delete
+	owner<int*> f7(int n)	// bad: loses n and we might forget to delete
 	{
 		owner<int*> p = new int[n];
 		// ... initialize *p ...
@@ -683,7 +683,7 @@ We could check earlier and improve the code:
 
 	void increment2(array_view<int> p)
 	{
-		for (int x : p) ++x;
+		for (int& x : p) ++x;
 	}
 
 	void use2(int m)
@@ -780,7 +780,7 @@ The physical law for a jet (`e*e < x*x + y*y + z*z`) is not an invariant because
 		fclose(input);
 	}
 
-Prefer [RAII](Rr-raii):
+Prefer [RAII](#Rr-raii):
 
 	void f(char* name)
 	{
@@ -796,7 +796,7 @@ Prefer [RAII](Rr-raii):
 
 * Look at pointers: classify them into non-owners (the default) and owners.
 Where feasible, replace owners with standard-library resource handles (as in the example above).
-Alternatively, mark an owner as such using `owner` from [the GSL](#S-support).
+Alternatively, mark an owner as such using `owner` from [the GSL](#S-gsl).
 * Look for naked `new` and `delete`
 * look for known resource allocating functions returning raw pointers (such as `fopen`, `malloc`, and `strdup`)
 
@@ -842,7 +842,7 @@ Alternatively, mark an owner as such using `owner` from [the GSL](#S-support).
 		// ...
 	}
 	
-Yes, this is a carricature, but we have seen every individual mistake in production code, and worse.
+Yes, this is a caricature, but we have seen every individual mistake in production code, and worse.
 Note that the layout of `X` guarantees that at least 6 bytes (and most likely more) bytes are wasted.
 The spurious definition of copy operations disables move semantics so that the return operation is slow.
 The use of `new` and `delete` for `buf` is redundant; if we really needed a local string, we should use a local `string`.
@@ -996,7 +996,7 @@ That's part of the problem.
 
 This one of the most effective solution to problem related to initialization order.
 In a multi-threaded environment the initialization of the static object does not introduce a race condition
-(unless you carelessly access a shared objects from within its consructor).
+(unless you carelessly access a shared objects from within its constructor).
 
 If you, as many do, define a singleton as a class for which only one object is created, functions like `myX` are not singletons,
 and this useful technique is not an exception to the no-singleton rule.
@@ -1070,14 +1070,14 @@ Some preconditions can be expressed as assertions. For example:
 
 Ideally, that `Expects(x>=0)` should be part of the interface of `sqrt()` but that's not easily done. For now, we place it in the definition (function body).
 
-**Reference**: `Expects()` is described in [GSL](S-Support).
+**Reference**: `Expects()` is described in [GSL](#S-gsl).
 
 **Note**: Prefer a formal specification of requirements, such as `Expects(p!=nullptr);` If that is infeasible, use English text in comments, such as
 `// the sequence [p:q) is ordered using <`
 
 **Note**: Most member functions have as a precondition that some class invariant holds.
-That invariant is established by a constructor and must be reestablished upon exit by evenry member function called from outside the class.
-We don't need to mentioning it for each member function.
+That invariant is established by a constructor and must be reestablished upon exit by every member function called from outside the class.
+We don't need to mention it for each member function.
 
 **Enforcement**: (Not enforceable)
 
@@ -1171,7 +1171,7 @@ Here, we "forgot" to state that the `mutex` should be released, so we don't know
 
 The bug is now obvious.
 
-Better still, use [RAII](#Rc-raii) to ensure that the postcondition ("the lock must be released") is enforced in code:
+Better still, use [RAII](#Rr-raii) to ensure that the postcondition ("the lock must be released") is enforced in code:
 
 	void manipulate(Record& r)	// best
 	{
@@ -1203,7 +1203,7 @@ Postconditions related only to internal state belongs in the definition/implemen
 
 **Note**: preconditions can be stated in many ways, including comments, `if`-statements, and `assert()`. This can make them hard to distinguish from ordinary code, hard to update, hard to manipulate by tools, and may have the wrong semantics.
 
-**Alternative**: Postconditions of the form "this resource must be released" and best expressed by [RAII](#Rc-raii).
+**Alternative**: Postconditions of the form "this resource must be released" and best expressed by [RAII](#Rr-raii).
 
 Ideally, that `Ensured` should be part of the interface that's not easily done. For now, we place it in the definition (function body).
 
@@ -1322,7 +1322,7 @@ That is, its value must be `delete`d or transferred to another owner, as is done
 
 `owner` is used similarly in the implementation of resource handles.
 
-`owner` is defined in the [Guideline Support Library](#S-GSL).
+`owner` is defined in the [Guideline Support Library](#S-gsl).
 
 **Note**: Every object passed as a raw pointer (or iterator) is assumed to be owned by the caller, so that its lifetime is handled by the caller.
 
@@ -1514,7 +1514,7 @@ This will force every derived class to compute a center -- even if that's non-tr
 
 **Exception**: You can carefully craft an interface using a few carefully selected higher-level C++ types. See ???.
 
-**Exception**: Common ABIs are emerging on some platfoms freeing you from the more Draconian restrictions.
+**Exception**: Common ABIs are emerging on some platforms freeing you from the more Draconian restrictions.
 
 **Note**: if you use a single compiler, you can use full C++ in interfaces. That may require recompilation after an upgrade to a new compiler version.
 
@@ -1603,7 +1603,7 @@ If something is a well-specified action, separate it out from its  surrounding c
 Almost everything is wrong with `read_and_print`.
 It reads, it writes (to a fixed `ostream`), it write error messages (to a fixed `ostream`), it handles only `int`s.
 There is nothing to reuse, logically separate operations are intermingled and local variables are in scope after the end of their logical use.
-For a tiny example, this looks OK, but if the input opeartion, the output operation, and the error handling had been more complicated the tangled
+For a tiny example, this looks OK, but if the input operation, the output operation, and the error handling had been more complicated the tangled
 mess could become hard to understand.
 
 **Note**: If you write a non-trivial lambda that potentially can be used in more than one place,
@@ -1695,7 +1695,7 @@ If there was a need, we could further templatize `read()` and `print()` on the d
 ### F.3: Keep functions short and simple
 
 **Reason**: Large functions are hard to read, more likely to contain complex code, and more likely to have variables in larger than minimal scopes.
-Functions with complex control stryuctures are more likely to be long and more likely to hide logical errors
+Functions with complex control structures are more likely to be long and more likely to hide logical errors
 
 **Example**: Consider
 
@@ -1747,7 +1747,7 @@ We can refactor:
   		if (flag1 > 0)
  			return func1_muon(val, flag2);
 		if (flag1 == -1)
-    		return func1_tau(-val, flag2);	// handled by func1_tau: flag1 = -flag1;
+    		return func1_tau(-val, flag1, flag2);	// handled by func1_tau: flag1 = -flag1;
   		return 0.;
 	}
 
@@ -1809,7 +1809,7 @@ This is usually a very good thing.
 
 **Note**: Don't try to make all functions `constexpr`. Most computation is best done at run time.
 
-**Enforcement**: Imposible and unnecessary.
+**Enforcement**: Impossible and unnecessary.
 The compiler gives an error if a non-`constexpr` function is called where a constant is required.
 
 
@@ -2023,7 +2023,7 @@ When I call `length(r)` should I test for `r==nullptr` first? Should the impleme
 
 **Also**: Assume that a `T*` obtained from a smart pointer to `T` (e.g., unique_ptr<`T`>) pointes to a single element.
 
-**See also**: [Support library](#S-support).
+**See also**: [Support library](#S-gsl).
 
 **Enforcement**:
 
@@ -2074,7 +2074,7 @@ When I call `length(r)` should I test for `r==nullptr` first? Should the impleme
 
 **Note**: Passing an `array_view` object as an argument is exactly as efficient as passing a pair of pointer arguments or passing a pointer and an integer count.
 
-**See also**: [Support library](#S-support).
+**See also**: [Support library](#S-gsl).
 
 **Enforcement**: (Complex) Warn where accesses to pointer parameters are bounded by other parameters that are integral types and suggest they could use `array_view` instead.
 
@@ -2098,7 +2098,7 @@ When I call `length(s)` should I test for `s==nullptr` first? Should the impleme
 
 **Note**: `zstring` do not represent ownership.
 
-**See also**: [Support library](#S-support).
+**See also**: [Support library](#S-gsl).
 
 
 <a name="Rf-const-T-ref"></a>
@@ -2363,7 +2363,7 @@ Returning a `T*` to transfer ownership is a misuse.
 
 		Node* find(Node* t, const string& s)	// find s in a binary tree of Nodes
 		{
-			if (t->name==s) return t;
+			if (t == nullptr || t->name == s) return t;
 			if (auto p = find(t->left,s)) return p;
 			if (auto p = find(t->right,s)) return p;
 			return nullptr;
@@ -2389,12 +2389,12 @@ This applies to references as well:
 	{
 		int x = 7;
 		// ...
-		return x;	// Bad: returns refence to object that is about to be destroyed
+		return x;	// Bad: returns reference to object that is about to be destroyed
 	}
 
 **See also**: [discussion of dangling pointer prevention](#???).
 
-**Enforcement**: A slightly diffent variant of the problem is placing pointers in a container that outlives the objects pointed to.
+**Enforcement**: A slightly different variant of the problem is placing pointers in a container that outlives the objects pointed to.
 
 * Compilers tend to catch return of reference to locals and could in many cases catch return of pointers to locals.
 * Static analysis can catch most (all?) common patterns of the use of pointers indicating positions (thus eliminating dangling pointers)
@@ -2716,7 +2716,7 @@ but
 For example, we can now change the representation of a `Date` without affecting its users (recompilation is likely, though).
 
 **Note**: Using a class in this way to represent the distinction between interface and implementation is of course not the only way.
-For example, we can use a set of declarations of freestandanding functions in a namespace,
+For example, we can use a set of declarations of freestanding functions in a namespace,
 an abstract base class,
 or a template fuction with concepts to represent an interface.
 The most important issue is to explicitly distinguish between an interface and its implementation "details."
@@ -2837,7 +2837,7 @@ You need a reason (use cases) for using a hierarchy.
 	}
 
 If a class can be part of a hierarchy, we (in real code if not necessarily in small examples) must manipulate its objects through pointers or references.
-That implies more memory overhead, more allocations and deallocations, and more run-time overhead to perform the resulting indiretions.
+That implies more memory overhead, more allocations and deallocations, and more run-time overhead to perform the resulting indirections.
 
 **Note**: Concrete types can be stack allocated and be members of other classes.
 
@@ -3297,9 +3297,9 @@ Assigning a `Triangle` to a `Circle`?
 Unless `Shape` has its [copy assignment `=deleted`](#Rc-copy-virtual), only the `Shape` part of `Triangle` is copied into the `Circle`.
 
 
-**Note**: Why not just require all owning refereces to be replaced by "smart pointers"?
+**Note**: Why not just require all owning references to be replaced by "smart pointers"?
  Changing from references to smart pointers implies code changes.
- We don't (yet) havesmart references.
+ We don't (yet) have smart references.
  Also, that may affect ABIs.
 
 **Enforcement**:
@@ -3496,7 +3496,7 @@ Compilers do not read comments.
 **Exception**: If a valid object cannot conveniently be constructed by a constructor [use a factory function](#C factory).
 
 **Note**: If a constructor acquires a resource (to create a valid object), that resource should be [released by the destructor](#Rc-release).
-The idiom of having constructors acquire resources and destructors release them is called [RAII](Rr-raii) ("Resource Acquisitions Is Initialization").
+The idiom of having constructors acquire resources and destructors release them is called [RAII](#Rr-raii) ("Resource Acquisitions Is Initialization").
 
 
 <a name="Rc-throw"></a>
@@ -3564,7 +3564,7 @@ The idiom of having constructors acquire resources and destructors release them 
 
 **Note**: For a variable definition (e.g., on the stack or as a member of another object) there is no explicit function call from which an error code could be returned. Leaving behind an invalid object an relying on users to consistently check an `is_valid()` function before use is tedious, error-prone, and inefficient.
 
-**Exception**: There are domains, such as some hard-real-time systems (think airplane controls) where (without additional tool support) exception handling is not sufficiently predictable from a timing perspective. There the `is_valed()` technique must be used. In such cases, check `is_valid()` consistently and immediately to simulate [RAII](#Rc-raii).
+**Exception**: There are domains, such as some hard-real-time systems (think airplane controls) where (without additional tool support) exception handling is not sufficiently predictable from a timing perspective. There the `is_valed()` technique must be used. In such cases, check `is_valid()` consistently and immediately to simulate [RAII](#Rr-raii).
 
 **Alternative**: If you feel tempted to use some "post-constructor initialization" or "two-stage initialization" idiom, try not to do that. If you really have to, look at [factory functions](#Rc-factory).
 
@@ -3795,7 +3795,7 @@ How would a maintainer know whether `j` was deliberately uninitialized (probably
 	class B {		// BAD
     	string s1;
 	public:
-    	B() { s1 = "Hello, "; }   // BAD: default constuct followed by assignment
+    	B() { s1 = "Hello, "; }   // BAD: default constructor followed by assignment
 		// ...
 	};
 
@@ -3874,7 +3874,7 @@ By providing the factory function `Create()`, we make construction (on the free 
 
 **Example; bad**:
 
-	class Date {	// BAD: repettive
+	class Date {	// BAD: repetitive
 		int d;
 		Month m;
 		int y;
@@ -4737,7 +4737,7 @@ not using this (over)general interface in favor of a particular interface found 
 * Warn on any class that contains data members and also has an overridable (non-`final`) virtual function.
 
 
-<a name="Rh-separation"></a?
+<a name="Rh-separation"></a>
 ### C.122: Use abstract classes as interfaces when complete separation of interface and implementation is needed
 
 **Reason**: Such as on an ABI (link) boundary.
@@ -5013,8 +5013,8 @@ and such interfaces are often not easily or naturally organized into a single-ro
 
 **Example**:
 
-	struct B { int a; virtual f(); };
-	struct D { int b; override f(); };
+	struct B { int a; virtual int f(); };
+	struct D : B { int b; int f() override; };
 
 	void use(B b)
 	{
@@ -5026,7 +5026,7 @@ and such interfaces are often not easily or naturally organized into a single-ro
 	void use2()
 	{
 		D d;
-		use(b);	// slice
+		use(d);	// slice
 	}
 
 Both `d`s are sliced.
@@ -5279,7 +5279,7 @@ The two operations are still fundamentally different (and unrelated) but the nam
 
 **Reason**: Implicit conversions can be essential (e.g., `double` to '`int`) but often cause surprises (e.g., `String` to C-style string).
 
-**Note**: Prefer explicitly named conversions until a serious need is demonstracted.
+**Note**: Prefer explicitly named conversions until a serious need is demonstrated.
 By "serious need" we mean a reason that is fundamental in the application domain (such as an integer to complex number conversion)
 and frequently needed. Do not introduce implicit conversions (through conversion operators or non-`explicit` constructors)
 just to gain a minor convenience.
@@ -5574,9 +5574,9 @@ What is `Port`? A handy wrapper that encapsulates the resource:
         Port& operator=(const Port&) =delete;
     };
 
-**Note**: Where a resource is "ill-behaved" in that it isn't represented as a class with a destructor, wrap it in a class or use [`finally`](#S-GSL)
+**Note**: Where a resource is "ill-behaved" in that it isn't represented as a class with a destructor, wrap it in a class or use [`finally`](#S-gsl)
 
-**See also**: [RAII](Rr-raii).
+**See also**: [RAII](#Rr-raii).
 
 
 <a name ="Rr-use-ptr"></a>
@@ -5862,7 +5862,7 @@ The use of the file handle (in `ifstream`) is simple, efficient, and safe.
 
 **Enforcement**:
 
-* Flag explicit allocations used to initialize pointers  (problem: how many direct resouce allocations can we recognize?)
+* Flag explicit allocations used to initialize pointers  (problem: how many direct resource allocations can we recognize?)
 
 
 <a name ="Rr-single alloc"></a>
@@ -5898,13 +5898,13 @@ Write your own factory wrapper if there is not one already.
   
 **Enforcement**:
 
-* Flag expressions with multiple explicit resource allocations (problem: how many direct resouce allocations can we recognize?)
+* Flag expressions with multiple explicit resource allocations (problem: how many direct resource allocations can we recognize?)
 
 
 <a name ="Rr-ap"></a>
 ### R.14: ??? array vs. pointer parameter
 
-**Reason**: An array decays to a pointer, thereby loosing its size, opening the opportunity for range errors.
+**Reason**: An array decays to a pointer, thereby losing its size, opening the opportunity for range errors.
 
 **Example**:
 
@@ -6391,7 +6391,7 @@ The more traditional and lower-level near-equivalent is longer, messier, harder 
 		while (is && elemcount<maxelem) {
 			auto s = new char[maxstring];
 			is.read(s,maxstring);
-			res[elemcount++= = s;
+			res[elemcount++] = s;
 		}
 		nread = elemcount;
 		return res;
@@ -6496,7 +6496,7 @@ I am assuming that `Record` is large and doesn't have a good move operation so t
 **Enforcement**:
 
 * Flag loop variables declared before the loop and not used after the loop
-* (hard) Flag loop variables declared before the loop andused after the loop for an unrelated purpose.
+* (hard) Flag loop variables declared before the loop and used after the loop for an unrelated purpose.
 
 
 <a name="Res-name-length"></a>
@@ -6576,7 +6576,7 @@ We recommend keeping functions short, but that rule isn't universally adhered to
 <a name="Res-!CAPS"></a>
 ### ES.9: Avoid `ALL_CAPS` names
 
-**Reason**: Such names are commonly used for macros. Thus, ALL_CAPS name are vulnarable to unintend macro substitution.
+**Reason**: Such names are commonly used for macros. Thus, ALL_CAPS name are vulnerable to unintended macro substitution.
 
 **Example**:
 
@@ -7169,7 +7169,7 @@ rather than
 			cout << v[i] << '\n';
 	}
 
-A human or a good static analyzer may determine that there really isn't a side efect on `v` in `f(&v[i])` so that the loop can be rewritten.
+A human or a good static analyzer may determine that there really isn't a side effect on `v` in `f(&v[i])` so that the loop can be rewritten.
 
 "Messing with the loop variable" in the body of a loop is typically best avoided.
 
@@ -7355,7 +7355,7 @@ Expressions manipulate values.
 
 	x = a+(b=f())+(c=g())*7;	// bad: multiple assignments "hidden" in subexpressions
 
-	x = a&b+c*d&&e^f==7;		// bad: relies on commonly misunderstool precedence rules
+	x = a&b+c*d&&e^f==7;		// bad: relies on commonly misunderstood precedence rules
 
 	x = x++ + x++ + ++x;		// bad: undefined behavior
 
@@ -7379,7 +7379,7 @@ Some of these expressions are unconditionally bad (e.g., they rely on undefined 
 	
 **Enforcement**: Tricky. How complicated must an expression be to be considered complicated? Writing computations as statements with one operation each is also confusing. Things to consider:
 
-* sideffects: sideffects on multiple non-local variables (for some definition of non-local) can be suspect, expecially if the sideefects are in separate subexpressions
+* side effects: side effects on multiple non-local variables (for some definition of non-local) can be suspect, especially if the side effects are in separate subexpressions
 * writes to aliased variables
 * more than N operators (and what should N be?)
 * reliance of subtle precedence rules
@@ -7545,7 +7545,7 @@ We also include lossy arithmetic casts, such as from a negative floating point t
 <a name="Res-nullptr"></a>
 ### ES.47: Use `nullptr` rather than `0` or `NULL`
 
-**Reason**: Readibility. Minimize surprises: `nullptr` cannot be confused with an `int`.
+**Reason**: Readability. Minimize surprises: `nullptr` cannot be confused with an `int`.
 
 **Example**: Consider
 
@@ -7629,7 +7629,7 @@ Such examples are often handled as well or better using `mutable` or an indirect
 <a name="Res-range-checking"></a>
 ### ES.55: Avoid the need for range checking
 
-**Reason**: Constructs that cannot oveflow, don't, and usually runs faster:
+**Reason**: Constructs that cannot overflow, don't, and usually runs faster:
 
 **Example**:
 
@@ -7678,7 +7678,7 @@ There can be code in the `...` part that causes the `delete` never to happen.
 		delete p;			// error: just delete the object p, rather than delete the array p[]
 	}
 	
-**Note**: This example also violates the [no naked `new` rule](#Res-new) and has many more problems.
+**Note**: This example not only violates the [no naked `new` rule](#Res-new) as in the previous example, it has many more problems.
 
 **Enforcement**:
 
@@ -7721,7 +7721,7 @@ There can be code in the `...` part that causes the `delete` never to happen.
 **Note** Unfortunately, C++ uses signed integers for array subscripts and the standard library uses unsigned integers for container subscripts.
 This precludes consistency.
 
-**Enforcement**: Complilers already know and sometimes warn.
+**Enforcement**: Compilers already know and sometimes warn.
 
 
 <a name="Res-unsigned"></a>
@@ -8203,7 +8203,7 @@ Unless the loop was meant to be infinite, termination is normal and expected.
 
 **Exception**: Some systems, such as hard-real time systems require a guarantee that an action is taken in a (typically short) constant maximum time known before execution starts. Such systems can use exceptions only if there is tool support for accurately predicting the maximum time to recover from a `throw`.
 
-**See also**: [RAII](#Rc-raii)
+**See also**: [RAII](#Re-raii)
 
 **See also**: [discussion](#Sd-noexcept)
 
@@ -8243,7 +8243,7 @@ and to recover from an error every object not destroyed must be in a valid state
 <a name="Re-invariant"></a>
 ### E.5: Let a constructor establish an invariant, and throw if it cannot
 
-**Reason**: Leaving an object without its invariant aestablished is asking for trouble.
+**Reason**: Leaving an object without its invariant established is asking for trouble.
 Not all member function can be called.
 
 **Example**:
@@ -8570,7 +8570,7 @@ Let cleanup actions on the unwinding path be handles by [RAII](#Re-raii).
 			// ...
 		}
 		catch (...) {
-			throw;	// propagate excption
+			throw;	// propagate exception
 		}
 	}
 
@@ -8720,7 +8720,7 @@ Concept use rule summary:
 * [T.10: Specify concepts for all template arguments](#Rt-concepts)
 * [T.11: Whenever possible use standard concepts](#Rt-std)
 * [T.12: Prefer concept names over `auto` for local variables](#Rt-auto)
-* [T.13: Prefer the shorhand notation for simple, single-type agument concepts](#Rt-shorthand)
+* [T.13: Prefer the shorthand notation for simple, single-type argument concepts](#Rt-shorthand)
 * ???
 
 Concept definition rule summary:
@@ -8974,7 +8974,7 @@ Concept use rule summary:
 * [T.10: Specify concepts for all template arguments](#Rt-concepts)
 * [T.11: Whenever possible use standard concepts](#Rt-std)
 * [T.14: Prefer concept names over `auto`](#Rt-auto)
-* [T.15: Prefer the shorhand notation for simple, single-type agument concepts](Rt-shorthand)
+* [T.15: Prefer the shorthand notation for simple, single-type argument concepts](Rt-shorthand)
 * ???
 
 Concept definition rule summary:
@@ -9041,7 +9041,7 @@ This is typically only needed when (as part of template metaprogramming code) we
 <a name="Rt-std"></a>
 ### T.11: Whenever possible use standard concepts
 
-**Reason**: "Standard" concepts (as provideded by the GSL, the ISO concepts TS, and hopefully soon the ISO standard itself)
+**Reason**: "Standard" concepts (as provided by the GSL, the ISO concepts TS, and hopefully soon the ISO standard itself)
 saves us the work of thinking up our own concepts, are better thought out than we can manage to do in a hurry, and improves interoperability.
 
 **Note**: Unless you are creating a new generic library, most of the concepts you need will already be defined by the standard library.
@@ -9086,7 +9086,7 @@ It is better and simpler just to use `Sortable`:
 
 
 <a name="Rt-shorthand"></a>
-### T.13: Prefer the shorhand notation for simple, single-type agument concepts
+### T.13: Prefer the shorthand notation for simple, single-type argument concepts
 
 **Reason**: Readability. Direct expression of an idea.
 
@@ -9457,7 +9457,7 @@ Uniformity: `using` is syntactically similar to `auto`.
 	tuple<int,string,double> t1 = {1,"Hamlet",3.14};	// explicit type
 	auto t2 = make_tuple(1,"Ophelia"s,3.14);			// better; deduced type
 
-Note the use of the `s` suffix to ensire that the string is a `std::string`, rather than a C-style string.
+Note the use of the `s` suffix to ensure that the string is a `std::string`, rather than a C-style string.
 
 **Note**: Since you can trivially write a `make_T` function, so could the compiler. Thus, `make_T` functions may become redundant in the future.
 
@@ -9726,7 +9726,7 @@ There are three major ways to let calling code customize a template.
 		f(t);			// require f(/*T*/) be available in caller's cope or in T's namespace
 	}
 	
-* Invoke a "trait" -- usually a type alias to compute a type, or a `constexpr` function to compute a value, or in rarer cases a traditioal traits template to be specialized on the user's type.
+* Invoke a "trait" -- usually a type alias to compute a type, or a `constexpr` function to compute a value, or in rarer cases a traditional traits template to be specialized on the user's type.
 
 	template<class T>
 	void test(T t) {
@@ -10202,7 +10202,7 @@ Of course, range-for is better still where it does what you want.
 <a name="Rt-specialize-function"></a>
 ### T.144: Don't specialize function templates
 
-**Reason**: You can't partially specialize a function template per language rules. You can fully specialize a function tempalte but you almost certainly want to overload instead -- because function template specializations don't participate in overloading, they don't act as you probably wanted. Rarely, you should actualy specialize by delegating to a class template that you can specialize properly.
+**Reason**: You can't partially specialize a function template per language rules. You can fully specialize a function template but you almost certainly want to overload instead -- because function template specializations don't participate in overloading, they don't act as you probably wanted. Rarely, you should actually specialize by delegating to a class template that you can specialize properly.
 
 **Example**:
 	
@@ -10211,7 +10211,7 @@ Of course, range-for is better still where it does what you want.
 **Exceptions**: If you do have a valid reason to specialize a function template, just write a single function template that delegates to a class template, then specialize the class template (including the ability to write partial specializations).
 	
 **Enforcement**:
-* Flag all specializations of a funciton template. Overload instead.
+* Flag all specializations of a function template. Overload instead.
 
 
 
@@ -10675,7 +10675,7 @@ Many
 * focus on lower-level issues, such as the spelling of identifiers
 * are written by C++ novices
 * see "stopping programmers from doing unusual things" as their primary aim
-* aim at protability across many compilers (some 10 years old)
+* aim at portability across many compilers (some 10 years old)
 * are written to preserve decades old code bases
 * aims at a single application domain
 * are downright counterproductive
@@ -11292,7 +11292,7 @@ These functions all have bounds-safe overloads that take `array_view`. Standard 
 
 
 
-<a name="S-support"></a>
+<a name="S-gsl"></a>
 # GSL: Guideline support library
 
 The GSL is a small library of facilities designed to support this set of guidelines.
@@ -11468,7 +11468,7 @@ Comments are not updates as consistently as code.
 
 	auto x = m*v1 + vv;	// multiply m with v1 and add the result to vv
 
-**Enforcement**: Build an AI program that interprets colloqual English text and see if what is said could be better expressed in C++.
+**Enforcement**: Build an AI program that interprets colloquial English text and see if what is said could be better expressed in C++.
 
 
 <a name="Rl-comments intent"></a>
@@ -11651,7 +11651,7 @@ If you prefer CamelCase, you have to choose among different flavors of camelCase
 		// ...
 	}
 
-**Note**: Some IDEs have their own opinios and adds distracting space.
+**Note**: Some IDEs have their own opinions and adds distracting space.
 
 **Note**: We value well-placed whitespace as a significant help for readability. Just don't overdo it.
 
@@ -11792,13 +11792,13 @@ Here are some (very general) ideas:
 
 * The ideal is "just upgrade everything." That gives the most benefits for the shortest total time.
 In most circumstances, it is also impossible.
-* We could convert a code base module for module, but any rules that affects interfaces (especially ABIs), such as [use `array_view`](#S-GSL), cannot be done on a per-module basis.
-* We could convert code "botton up" starting with the rules we estimate will give the greatest benefits and/or the least trouble in a given code base.
+* We could convert a code base module for module, but any rules that affects interfaces (especially ABIs), such as [use `array_view`](#SS-views), cannot be done on a per-module basis.
+* We could convert code "bottom up" starting with the rules we estimate will give the greatest benefits and/or the least trouble in a given code base.
 * We could start by focusing on the interfaces, e.g., make sure that no resources are lost and no pointer is misused.
 This would be a set of changes across the whole code base, but would most likely have huge benefits.
 
 Whichever way you choose, please note that the most advantages come with the highest conformance to the guidelines.
-The guidelines are not a random set of unrelated rules where you can srandomly pick and choose with an expectation of success.
+The guidelines are not a random set of unrelated rules where you can randomly pick and choose with an expectation of success.
 
 We would dearly love to hear about experience and about tools used.
 Modernization can be much faster, simpler, and safer when supported with analysis tools and even code transformation tools.
